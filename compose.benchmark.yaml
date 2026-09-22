@@ -1,0 +1,28 @@
+services:
+  loop:
+    profiles: ["benchmark"]
+    command: npm run loop:benchmark
+    environment:
+      ELYSIUM_LIVE_ENABLED: "true"
+      ELYSIUM_BENCHMARK_ENABLED: "true"
+      ELYSIUM_STATE_DIR: /home/node/.local/state/elysium-minute-loop
+      ELYSIUM_BENCHMARK_MAX_TX_COST: "1500000000000000"
+      ELYSIUM_BENCHMARK_DAILY_COST_LIMIT: "200000000000000000"
+      ELYSIUM_BENCHMARK_POLL_MS: "2000"
+
+  loop-hyperevm:
+    image: elysium-minute-loop:local
+    profiles: ["benchmark"]
+    command: npm run loop:benchmark -- --chain hyperevm-testnet
+    environment:
+      ELYSIUM_CHAIN: hyperevm-testnet
+      ELYSIUM_LIVE_ENABLED: "true"
+      ELYSIUM_BENCHMARK_ENABLED: "true"
+      ELYSIUM_STATE_DIR: /home/node/.local/state/elysium-minute-loop-hyperevm
+      ELYSIUM_BENCHMARK_MAX_TX_COST: "1500000000000000"
+      ELYSIUM_BENCHMARK_DAILY_COST_LIMIT: "200000000000000000"
+      ELYSIUM_BENCHMARK_POLL_MS: "2000"
+    volumes:
+      - ${HOME}/.config/elysium-minute-loop:/home/node/.config/elysium-minute-loop:ro
+      - ${HOME}/.local/state/elysium-minute-loop-hyperevm:/home/node/.local/state/elysium-minute-loop-hyperevm
+    restart: unless-stopped

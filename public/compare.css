@@ -1,0 +1,61 @@
+:root {
+  --series-a: var(--chart-final);
+  --series-b: var(--chart-series-2);
+}
+
+.disclaimer { margin: 0 0 var(--s4); padding: var(--s2) var(--s3); border: 1px solid var(--border-strong); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-sm); }
+.disclaimer strong { color: var(--ink); }
+.verdict { margin: 0 0 var(--s4); font-size: var(--fs-lg); line-height: 1.5; max-width: 80ch; display: flex; flex-direction: column; gap: var(--s2); }
+.verdict p { margin: 0; }
+.verdict strong { font-weight: 700; }
+.verdict .provisional { color: var(--warn); font-weight: 600; }
+
+.compare-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--s4); }
+.compare-card { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-2); padding: var(--s4); display: flex; flex-direction: column; gap: var(--s3); }
+.compare-card h3 { font-size: var(--fs-lg); display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.compare-card .stack { margin: 0; color: var(--ink-3); font-size: var(--fs-sm); }
+.layer-tag { font-size: var(--fs-xs); font-weight: 700; letter-spacing: 0.04em; border: 1px solid var(--border-strong); border-radius: var(--radius-pill); padding: 0 8px; color: var(--ink-2); }
+.swatch { width: 12px; height: 12px; border-radius: 3px; flex: none; }
+.swatch[data-series="a"] { background: var(--series-a); }
+.swatch[data-series="b"] { background: var(--surface); border: 2px dashed var(--series-b); }
+.big-number { margin: 0; font-family: var(--font-mono); font-size: 32px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.big-number small { font-size: var(--fs-md); font-weight: 500; color: var(--ink-3); margin-left: var(--s1); }
+.card-kv { display: grid; grid-template-columns: auto 1fr; gap: 2px var(--s3); margin: 0; font-size: var(--fs-sm); }
+.card-kv dt { color: var(--ink-3); }
+.card-kv dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.compare-table td.num, .compare-table th.num { text-align: right; }
+.compare-table tr.secondary th, .compare-table tr.secondary td { color: var(--ink-3); }
+.compare-table .tag { font-size: var(--fs-xs); font-weight: 600; color: var(--ink-3); margin-left: var(--s1); }
+
+.chart-wide { grid-column: 1 / -1; }
+.series-a-line { fill: none; stroke: var(--series-a); stroke-width: 2; stroke-linejoin: round; }
+.series-b-line { fill: none; stroke: var(--series-b); stroke-width: 2; stroke-dasharray: 5 3; stroke-linejoin: round; }
+.series-a-mark { fill: var(--series-a); }
+.series-b-mark { fill: var(--surface); stroke: var(--series-b); stroke-width: 1.5; }
+.series-a-bar { fill: var(--series-a); }
+.series-b-bar { fill: var(--surface); stroke: var(--series-b); stroke-width: 1.5; }
+.posting-bar { fill: var(--chart-pending); }
+#latency .chart-grid, #gas .chart-grid { margin-top: var(--s4); }
+
+.tx-table a { color: var(--accent); text-decoration: none; }
+.tx-table a:hover { text-decoration: underline; }
+.prose { max-width: 80ch; display: flex; flex-direction: column; gap: var(--s3); }
+.prose p { margin: 0; color: var(--ink-2); }
+.prose strong { color: var(--ink); }
+.prose a, .site-footer a { color: var(--accent); }
+.site-footer .social { display: inline-flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.site-footer .social a { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+.site-footer .social a:hover span { text-decoration: underline; }
+.site-footer svg { fill: currentColor; }
+.prose code { font-family: var(--font-mono); font-size: 12px; background: var(--surface-2); border-radius: var(--radius-sm); padding: 0 4px; }
+
+@media (max-width: 960px) {
+  .compare-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (forced-colors: active) {
+  .series-a-mark, .series-a-bar, .posting-bar { fill: CanvasText; }
+  .series-b-mark, .series-b-bar { fill: Canvas; stroke: CanvasText; }
+  .series-a-line, .series-b-line { stroke: CanvasText; }
+}

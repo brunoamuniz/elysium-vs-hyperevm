@@ -1,0 +1,50 @@
+{
+  "name": "elysium-vs-hyperevm",
+  "version": "1.0.0",
+  "description": "Live testnet benchmark comparing Elysium (Arbitrum Orbit L2) with HyperEVM (L1): transaction inclusion latency and gas fees, measured with the same contract and load on both chains.",
+  "keywords": [
+    "elysium",
+    "hyperevm",
+    "hyperliquid",
+    "arbitrum-orbit",
+    "benchmark",
+    "l2",
+    "testnet"
+  ],
+  "author": "Bruno Muniz (https://github.com/brunoamuniz)",
+  "license": "MIT",
+  "homepage": "https://github.com/brunoamuniz",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test",
+    "generate:wallet": "node scripts/generate-wallet.mjs",
+    "verify:rpc": "node scripts/verify-rpc.mjs",
+    "deploy": "node scripts/deploy.mjs --live",
+    "pulse:once": "node scripts/pulse-once.mjs --live",
+    "loop": "node scripts/loop.mjs --live",
+    "dashboard": "node scripts/dashboard.mjs",
+    "loop:benchmark": "node scripts/loop.mjs --live --profile benchmark-10",
+    "hold:clear": "node scripts/clear-hold.mjs",
+    "lint": "eslint .",
+    "format": "prettier --write src scripts test",
+    "format:check": "prettier --check src scripts test"
+  },
+  "dependencies": {
+    "fs-ext": "^2.1.1",
+    "solc": "0.8.37",
+    "viem": "^2.56.8"
+  },
+  "overrides": {
+    "tmp": "0.2.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.11.0",
+    "globals": "17.12.0",
+    "prettier": "3.9.8"
+  }
+}

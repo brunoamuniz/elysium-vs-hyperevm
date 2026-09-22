@@ -1,0 +1,28 @@
+services:
+  loop:
+    build: .
+    image: elysium-minute-loop:local
+    command: npm run loop
+    environment:
+      ELYSIUM_LIVE_ENABLED: "true"
+      ELYSIUM_STATE_DIR: /home/node/.local/state/elysium-minute-loop
+    volumes:
+      - ${HOME}/.config/elysium-minute-loop:/home/node/.config/elysium-minute-loop:ro
+      - ${HOME}/.local/state/elysium-minute-loop:/home/node/.local/state/elysium-minute-loop
+    restart: unless-stopped
+
+  dashboard:
+    image: elysium-minute-loop:local
+    command: npm run dashboard
+    environment:
+      ELYSIUM_STATE_DIR: /home/node/.local/state/elysium-minute-loop
+      ELYSIUM_DASHBOARD_PORT: "8787"
+      ELYSIUM_DASHBOARD_BIND_HOST: "0.0.0.0"
+      ELYSIUM_DASHBOARD_ALLOWED_HOSTS: "${DASHBOARD_BIND_IP:?set DASHBOARD_BIND_IP to your Tailscale IP}:8789"
+      ELYSIUM_HYPEREVM_STATE_DIR: /home/node/.local/state/elysium-minute-loop-hyperevm
+    volumes:
+      - ${HOME}/.local/state/elysium-minute-loop:/home/node/.local/state/elysium-minute-loop:ro
+      - ${HOME}/.local/state/elysium-minute-loop-hyperevm:/home/node/.local/state/elysium-minute-loop-hyperevm:ro
+    ports:
+      - "${DASHBOARD_BIND_IP:?set DASHBOARD_BIND_IP to your Tailscale IP}:8789:8787"
+    restart: unless-stopped

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<title>Elysium Minute Loop · Testnet monitor</title>
+<link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to dashboard</a>
+<div class="shell">
+<nav class="sidenav" aria-label="Dashboard sections">
+  <div class="wordmark">
+    <span class="wordmark-glyph" aria-hidden="true">E</span>
+    <span class="wordmark-text">Elysium<small>Minute Loop</small></span>
+  </div>
+  <ul class="nav-list">
+    <li><a href="#overview" aria-current="true">Overview</a></li>
+    <li><a href="#performance">Performance</a></li>
+    <li><a href="#charts">Charts</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+    <li><a href="#contract">Contract</a></li>
+    <li><a href="#health">Hold and health</a></li>
+  </ul>
+  <p class="nav-note">Read-only monitor. No signing, broadcast, or control actions exist here.</p>
+</nav>
+
+<div class="frame">
+<header class="topbar">
+  <p class="crumbs"><span>Explorer</span><span aria-hidden="true">/</span><span class="crumb-current">Minute Loop monitor</span></p>
+  <div class="topbar-meta">
+    <span class="testnet-chip" id="network-badge">Testnet</span>
+    <span class="chip" id="feed-status" role="status" aria-live="polite">connecting</span>
+    <span class="chip muted mono" id="generated-at">&ndash;</span>
+  </div>
+</header>
+
+<main id="main">
+  <section id="overview" class="block" aria-labelledby="overview-title">
+    <div class="block-head">
+      <h1 id="overview-title">Overview</h1>
+      <p class="state-line"><span class="dot" id="service-dot" aria-hidden="true"></span><span class="state-value" id="service-state">unknown</span></p>
+    </div>
+    <dl class="rail">
+      <div class="rail-item"><dt>Balance</dt><dd><span class="rail-value" id="balance-hype">&ndash;</span> <span class="rail-unit" id="balance-unit">HYPE</span></dd></div>
+      <div class="rail-item"><dt>Pulse count</dt><dd><span class="rail-value mono" id="pulse-count">&ndash;</span></dd></div>
+      <div class="rail-item"><dt>Head block</dt><dd><span class="rail-value mono" id="block-number">&ndash;</span></dd></div>
+      <div class="rail-item"><dt>Finalized</dt><dd><span class="rail-value mono" id="finalized-pulses">&ndash;</span> <span class="rail-unit">of <span id="total-actions">&ndash;</span></span></dd></div>
+      <div class="rail-item"><dt>p50 end-to-end</dt><dd><span class="rail-value mono" id="bench-p50">&ndash;</span></dd></div>
+      <div class="rail-item"><dt>p95 end-to-end</dt><dd><span class="rail-value mono" id="bench-p95">&ndash;</span></dd></div>
+      <div class="rail-item"><dt>Finalization rate</dt><dd><span class="rail-value mono" id="rate-final">&ndash;</span> <span class="rail-unit" id="rate-final-hour">&ndash;</span></dd></div>
+      <div class="rail-item"><dt>Cost today</dt><dd><span class="rail-value mono" id="cost-today">&ndash;</span> <span class="rail-unit">HYPE</span></dd></div>
+    </dl>
+  </section>
+
+  <section id="performance" class="block" aria-labelledby="performance-title">
+    <div class="block-head">
+      <h2 id="performance-title">Performance</h2>
+      <p class="block-sub">Primary samples only. Recovered, migrated, and drift samples are excluded from percentiles. <span id="sample-note"></span></p>
+    </div>
+    <div class="counts" id="count-strip" aria-label="Lifecycle counts">
+      <span class="count"><b id="c-submitted">&ndash;</b> submitted</span>
+      <span class="count"><b id="c-included">&ndash;</b> included</span>
+      <span class="count"><b id="c-finalized">&ndash;</b> finalized</span>
+      <span class="count"><b id="c-reverted">&ndash;</b> reverted</span>
+      <span class="count"><b id="c-pending">&ndash;</b> pending</span>
+      <span class="count"><b id="c-skipped">&ndash;</b> capacity-skipped</span>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-labelledby="phase-caption">
+      <table class="dense">
+        <caption id="phase-caption">Latency by lifecycle phase (2-conf is two block confirmations, not finality)</caption>
+        <thead>
+          <tr><th scope="col">Phase</th><th scope="col" class="num">n</th><th scope="col" class="num">p50</th><th scope="col" class="num">p95</th><th scope="col" class="num">min</th><th scope="col" class="num">max</th><th scope="col" class="num">mean</th><th scope="col" class="num">stdev</th><th scope="col" class="num">CV</th></tr>
+        </thead>
+        <tbody id="phase-body"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="charts" class="block" aria-labelledby="charts-title">
+    <div class="block-head">
+      <h2 id="charts-title">Charts</h2>
+      <p class="block-sub">Rendered locally from the sanitized API. Each chart has a text summary and a data table.</p>
+    </div>
+    <div class="chart-grid">
+      <figure class="chart" id="chart-latency" aria-labelledby="chart-latency-title">
+        <figcaption><h3 id="chart-latency-title">Latency over time</h3><p class="chart-summary" id="chart-latency-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Latency over time plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-minutes" aria-labelledby="chart-minutes-title">
+        <figcaption><h3 id="chart-minutes-title">Per-minute consistency</h3><p class="chart-summary" id="chart-minutes-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Per-minute consistency plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-histogram" aria-labelledby="chart-histogram-title">
+        <figcaption>
+          <h3 id="chart-histogram-title">Latency distribution</h3>
+          <p class="chart-summary" id="chart-histogram-summary">No data yet.</p>
+        </figcaption>
+        <div class="chart-controls">
+          <label for="bucket-select">Bucket</label>
+          <select id="bucket-select">
+            <option value="15000">15 s</option>
+            <option value="30000">30 s</option>
+            <option value="60000">60 s</option>
+          </select>
+        </div>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Latency distribution plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-throughput" aria-labelledby="chart-throughput-title">
+        <figcaption><h3 id="chart-throughput-title">Throughput and pending depth</h3><p class="chart-summary" id="chart-throughput-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Throughput and pending depth plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-cost" aria-labelledby="chart-cost-title">
+        <figcaption><h3 id="chart-cost-title">Cost</h3><p class="chart-summary" id="chart-cost-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Cost plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-health" aria-labelledby="chart-health-title">
+        <figcaption><h3 id="chart-health-title">RPC and recovery health</h3><p class="chart-summary" id="chart-health-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="RPC and recovery health plot, scrolls horizontally"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+    </div>
+  </section>
+
+  <section id="transactions" class="block" aria-labelledby="history-title">
+    <div class="block-head">
+      <h2 id="history-title">Recent transactions</h2>
+      <p class="block-sub">Newest first, last 25 journaled actions.</p>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-labelledby="history-title">
+      <table class="dense tx">
+        <caption class="sr-only">Most recent journaled actions, newest first</caption>
+        <thead>
+          <tr><th scope="col">Kind</th><th scope="col">Slot</th><th scope="col">Status</th><th scope="col">Hash</th><th scope="col" class="num">Nonce</th><th scope="col" class="num">Block</th><th scope="col" class="num">Latency</th><th scope="col">Timing</th><th scope="col" class="num">Cost HYPE</th><th scope="col">Finalized (UTC)</th></tr>
+        </thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+    </div>
+    <p class="note" id="tx-empty">No journaled transactions yet.</p>
+  </section>
+
+  <div class="split">
+    <section id="contract" class="block" aria-labelledby="identity-title">
+      <div class="block-head"><h2 id="identity-title">Wallet and contract</h2></div>
+      <dl class="kv">
+        <dt>Wallet address</dt><dd class="mono" id="wallet-address">&ndash;</dd>
+        <dt>Balance (wei)</dt><dd class="mono" id="balance-wei">&ndash;</dd>
+        <dt>Contract address</dt><dd class="mono" id="contract-address">&ndash;</dd>
+        <dt>Deploy transaction</dt><dd class="mono" id="deploy-tx">&ndash;</dd>
+        <dt>Deploy block</dt><dd class="mono" id="deploy-block">&ndash;</dd>
+        <dt>Network</dt><dd id="network-name">&ndash;</dd>
+        <dt>Chain ID</dt><dd class="mono" id="chain-id">&ndash;</dd>
+        <dt>Last slot</dt><dd class="mono" id="last-slot">&ndash;</dd>
+        <dt>Last finalized</dt><dd class="mono" id="last-finalized">&ndash;</dd>
+        <dt>Spend today</dt><dd class="mono" id="today-spend">&ndash;</dd>
+      </dl>
+    </section>
+
+    <section id="health" class="block" aria-labelledby="hold-title">
+      <div class="block-head">
+        <h2 id="hold-title">Hold and health</h2>
+        <p class="state-line"><span class="dot" id="hold-dot" aria-hidden="true"></span><span class="state-value small" id="hold-state">no hold recorded</span></p>
+      </div>
+      <dl class="kv">
+        <dt>Blocking action</dt><dd class="mono" id="hold-action">&ndash;</dd>
+        <dt>Status</dt><dd id="hold-status">&ndash;</dd>
+        <dt>Transaction</dt><dd class="mono" id="hold-hash">&ndash;</dd>
+        <dt>Loop liveness</dt><dd id="loop-liveness">&ndash;</dd>
+        <dt>HALT file</dt><dd id="halt-file">&ndash;</dd>
+        <dt>State journal</dt><dd id="state-availability">&ndash;</dd>
+        <dt>Elysium RPC</dt><dd id="rpc-availability">&ndash;</dd>
+        <dt>Aggregates</dt><dd id="aggregates-availability">&ndash;</dd>
+      </dl>
+      <p class="note">This dashboard is read-only. It cannot start, halt, deploy, sign, or broadcast anything.</p>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <span>Tailscale-only &middot; read-only &middot; not identity-authenticated</span>
+  <span class="mono" id="refresh-note">refresh every 15s</span>
+</footer>
+</div>
+</div>
+
+<script src="/dashboard.js"></script>
+</body>
+</html>
