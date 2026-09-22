@@ -571,6 +571,17 @@ test('the product page carries no operator or account vocabulary and credits the
   );
   assert.match(html, /href="https:\/\/github\.com\/brunoamuniz" target="_blank" rel="noopener noreferrer me"/);
   assert.match(html, /not affiliated with Kinetiq or Hyperliquid/);
+  const share = html.match(/href="(https:\/\/x\.com\/intent\/post\?[^"]+)"/);
+  assert.ok(share, 'the page has a Share on X link');
+  const intent = new URL(share[1].replaceAll('&amp;', '&'));
+  for (const handle of ['@0xbrunoamuniz', '@Kinetiq_xyz', '@Enter_Elysium'])
+    assert.ok(intent.searchParams.get('text').includes(handle), `the share text tags ${handle}`);
+  assert.equal(intent.searchParams.get('url'), 'https://elysium-vs-hyperevm.vercel.app');
+  assert.match(
+    html,
+    /href="https:\/\/github\.com\/brunoamuniz\/elysium-vs-hyperevm" target="_blank" rel="noopener noreferrer"/,
+    'the page has a Star on GitHub link',
+  );
   const top = html.indexOf('<h1 id="overview-title">Elysium vs HyperEVM</h1>');
   const note = html.indexOf('id="affiliation-note"');
   assert.ok(
