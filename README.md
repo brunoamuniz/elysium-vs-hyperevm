@@ -92,6 +92,21 @@ The operator view at `/operator` shows the benchmark account, balance and holds.
 - journal rotation;
 - the Tailscale ACL for the dashboard.
 
+## Public site (Vercel)
+
+The public page is a static copy of the comparison page in `web/`, served by Vercel. It reads one JSON file, `snapshot.json`, from a public Vercel Blob store. Nothing on Vercel can reach the benchmark host, and no key or secret is deployed there.
+
+- `npm run build:web` regenerates `web/` from `public/`. It points the page at the Blob URL and writes `vercel.json` with a strict Content-Security-Policy that allows connections only to that Blob host.
+- The publisher container uploads a fresh sanitized snapshot every 60 seconds. Its only secret is the store's `BLOB_READ_WRITE_TOKEN`, read from an env file outside the repo. It mounts the journals read-only, never the wallet, and publishes no ports.
+
+```bash
+install -d -m 700 ~/.config/elysium-vs-hyperevm-publisher
+install -m 600 /dev/null ~/.config/elysium-vs-hyperevm-publisher/blob.env   # then add BLOB_READ_WRITE_TOKEN=...
+docker compose -f compose.yaml -f compose.benchmark.yaml -f compose.publish.yaml --profile benchmark up -d publisher
+```
+
+Vercel project settings: Root Directory `web`, no framework, no build or install command.
+
 ## Development
 
 ```bash

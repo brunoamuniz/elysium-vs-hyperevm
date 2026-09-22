@@ -6,3 +6,6 @@ logs/
 *.log
 coverage/
 .venv/
+.vercel
+.env*
+!.env.example

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en" data-snapshot="https://marlsetf2fnnbxpa.public.blob.vercel-storage.com/snapshot.json">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Live testnet comparison of Elysium (L2) and HyperEVM (L1): transaction inclusion latency, gas and fees, measured with the same contract and load on both.">
+<title>Elysium vs HyperEVM</title>
+<link rel="stylesheet" href="dashboard.css">
+<link rel="stylesheet" href="compare.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to comparison</a>
+<div class="shell">
+<nav class="sidenav" aria-label="Sections">
+  <div class="wordmark">
+    <span class="wordmark-glyph" aria-hidden="true">vs</span>
+    <span class="wordmark-text">Elysium vs HyperEVM<small>Testnet benchmark</small></span>
+  </div>
+  <ul class="nav-list">
+    <li><a href="#overview" aria-current="true">Overview</a></li>
+    <li><a href="#latency">Latency</a></li>
+    <li><a href="#gas">Gas and fees</a></li>
+    <li><a href="#transactions">Transactions</a></li>
+    <li><a href="#methodology">Methodology</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <p class="nav-note">Live testnet data. Every figure links back to on-chain transactions you can verify.</p>
+</nav>
+
+<div class="frame">
+<header class="topbar">
+  <p class="crumbs"><span>L2 vs L1</span><span aria-hidden="true">/</span><span class="crumb-current">Elysium vs HyperEVM</span></p>
+  <div class="topbar-meta">
+    <span class="testnet-chip">Testnet</span>
+    <span class="chip" id="feed-status" role="status" aria-live="polite">connecting</span>
+    <span class="chip muted mono" id="generated-at">&ndash;</span>
+  </div>
+</header>
+
+<main id="main">
+  <section id="overview" class="block" aria-labelledby="overview-title">
+    <div class="block-head">
+      <h1 id="overview-title">Elysium vs HyperEVM</h1>
+      <p class="block-sub" id="window-note">&ndash;</p>
+    </div>
+    <p class="disclaimer" id="affiliation-note"><strong>Independent project.</strong> Not affiliated with, endorsed by, or sponsored by Kinetiq or Hyperliquid. Testnet data only.</p>
+    <div class="verdict" id="verdict-text" aria-live="polite"><p>Loading benchmark data&hellip;</p></div>
+    <div class="compare-grid" id="chain-cards"></div>
+  </section>
+
+  <section id="latency" class="block" aria-labelledby="latency-title">
+    <div class="block-head">
+      <h2 id="latency-title">Latency</h2>
+      <p class="block-sub">How long until a transaction is in a block. Primary samples in the shared window, in milliseconds from the moment our client started submitting.</p>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-labelledby="metrics-caption">
+      <table class="dense compare-table">
+        <caption id="metrics-caption">Headline rows first. Rows marked secondary depend on our client or on block production, not only on the chain.</caption>
+        <thead id="metrics-head"></thead>
+        <tbody id="metrics-body"></tbody>
+      </table>
+    </div>
+    <div class="chart-grid">
+      <figure class="chart" id="chart-hourly" aria-labelledby="chart-hourly-title">
+        <figcaption><h3 id="chart-hourly-title">Chain-side inclusion p50 per hour</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Hourly p50 plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-histogram" aria-labelledby="chart-histogram-title">
+        <figcaption><h3 id="chart-histogram-title">Chain-side inclusion distribution</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Inclusion distribution plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart chart-wide" id="chart-series" aria-labelledby="chart-series-title">
+        <figcaption><h3 id="chart-series-title">Every transaction over time</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Per-transaction inclusion plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+    </div>
+  </section>
+
+  <section id="gas" class="block" aria-labelledby="gas-title">
+    <div class="block-head">
+      <h2 id="gas-title">Gas and fees</h2>
+      <p class="block-sub">What the same transaction costs on each chain. Both chains price gas in HYPE, so fees compare directly. Testnet fee parameters, not market prices.</p>
+    </div>
+    <div class="table-wrap" tabindex="0" role="region" aria-labelledby="gas-caption">
+      <table class="dense compare-table">
+        <caption id="gas-caption">Per transaction, over settled primary samples in the shared window</caption>
+        <thead id="gas-head"></thead>
+        <tbody id="gas-body"></tbody>
+      </table>
+    </div>
+    <div class="chart-grid">
+      <figure class="chart chart-wide" id="chart-breakdown" aria-labelledby="chart-breakdown-title">
+        <figcaption><h3 id="chart-breakdown-title">Where the gas goes</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Gas breakdown plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-fee" aria-labelledby="chart-fee-title">
+        <figcaption><h3 id="chart-fee-title">Fee per transaction over time</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Fee per transaction plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+      <figure class="chart" id="chart-price" aria-labelledby="chart-price-title">
+        <figcaption><h3 id="chart-price-title">Gas price per hour</h3><p class="chart-summary">No data yet.</p></figcaption>
+        <div class="chart-plot" data-plot tabindex="0" role="region" aria-label="Gas price plot"></div>
+        <ul class="legend" data-legend></ul>
+        <details class="chart-data"><summary>Data</summary><div data-table></div></details>
+      </figure>
+    </div>
+  </section>
+
+  <section id="transactions" class="block" aria-labelledby="tx-title">
+    <div class="block-head">
+      <h2 id="tx-title">Recent transactions</h2>
+      <p class="block-sub">Newest first. Each hash opens the chain's own explorer.</p>
+    </div>
+    <div class="compare-grid" id="tx-tables"></div>
+  </section>
+
+  <section id="methodology" class="block" aria-labelledby="method-title">
+    <div class="block-head">
+      <h2 id="method-title">Methodology and caveats</h2>
+    </div>
+    <div class="prose">
+      <p><strong>Load.</strong> The same <code>MinutePulse</code> contract is deployed on both chains. One client host submits 10 new <code>pulse()</code> transactions per UTC minute to each chain, at the same time, with the same code, fee strategy and polling. This is a fixed offered load, not a throughput test.</p>
+      <p><strong>Headline latency: chain-side inclusion.</strong> The block timestamp of the including block minus the moment our client started submitting. Block timestamps have whole-second resolution, so a transaction included within the same second can read as 0 ms; values are accurate to about one second.</p>
+      <p><strong>RPC accept</strong> is the round trip of <code>eth_sendRawTransaction</code> to each chain's public RPC. <strong>Observed inclusion</strong> is when our client saw the block, polling every 500 ms, so it includes RPC round-trip time and polling delay. The RPC endpoints are in different places, so compare the watcher round-trip row before reading anything into observed inclusion.</p>
+      <p><strong>Gas and fees.</strong> The fee is <code>gasUsed &times; effectiveGasPrice</code> from each receipt, in HYPE on both chains. Execution gas is the EVM work, and it should match on both chains because the bytecode is identical. Elysium also reports <code>gasUsedForL1</code>, the gas charged for posting the transaction's data to its parent chain; we show it as posting gas. Testnet gas prices are chain parameters: Elysium's base fee is a fixed floor and HyperEVM's testnet base fee moves. Mainnet prices and posting cost at scale can differ.</p>
+      <p><strong>What "included" means differs.</strong> HyperEVM runs on HyperBFT and a block is final when it is produced. Elysium is an Arbitrum Orbit (Nitro) L2 with AnyTrust data availability and a single Conduit sequencer, and it settles to HyperEVM testnet. Inclusion on Elysium is a sequencer confirmation; settlement on the parent chain is not measured here.</p>
+      <p><strong>Two confirmations are not meaningful on either chain.</strong> Elysium produces a block only when there is a transaction, so waiting for two more blocks measures other traffic. HyperEVM is final at inclusion. The 2-conf row is shown only for completeness.</p>
+      <p><strong>Conditions.</strong> Both are public testnets. During sampling, our benchmark was a large share of Elysium's traffic, so Elysium figures describe a lightly loaded chain. HyperEVM carries other traffic, and its public RPC rate limits apply to our client. Kinetiq documents about 300 ms perceived receipts on Elysium.</p>
+      <p><strong>Samples.</strong> Only transactions measured with the current method (version 3) count, and only from the window in which both chains were running. Recovered or rebroadcast transactions are excluded from percentiles and counted separately. The latency difference carries a 95% bootstrap interval (10,000 resamples, fixed seed). No comparison is shown until each chain has at least 200 samples, and results are provisional until the shared window reaches 24 hours.</p>
+      <p><strong>Privacy.</strong> This page does not print the benchmark account, but it is visible on-chain from any linked transaction.</p>
+    </div>
+  </section>
+
+  <section id="about" class="block" aria-labelledby="about-title">
+    <div class="block-head">
+      <h2 id="about-title">About</h2>
+    </div>
+    <div class="prose">
+      <p>An independent, open measurement of how Elysium, a Layer 2 on Hyperliquid, compares with HyperEVM, the Layer 1 it settles to. The goal is a fair, reproducible answer to one question: is the L2 actually faster and cheaper for the same transaction?</p>
+      <p>Not affiliated with Kinetiq or Hyperliquid. Testnet only; nothing here reflects mainnet performance or prices.</p>
+      <p class="author">Built by Bruno Muniz &middot; <a href="https://github.com/brunoamuniz" target="_blank" rel="noopener noreferrer me">GitHub</a> &middot; <a href="https://x.com/0xbrunoamuniz" target="_blank" rel="noopener noreferrer me">X @0xbrunoamuniz</a> &middot; <a href="https://www.linkedin.com/in/brunoamuniz/" target="_blank" rel="noopener noreferrer me">LinkedIn</a></p>
+    </div>
+  </section>
+</main>
+
+<footer class="footer site-footer">
+  <span>Elysium vs HyperEVM &middot; testnet only &middot; not affiliated with Kinetiq or Hyperliquid</span>
+  <span class="social">
+    <span>Bruno Muniz</span>
+    <a href="https://github.com/brunoamuniz" target="_blank" rel="noopener noreferrer me" aria-label="Bruno Muniz on GitHub"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2.2c-3.3.7-4-1.4-4-1.4-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.6 18.3 5 18.3 5c.7 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3"/></svg><span>GitHub</span></a>
+    <a href="https://x.com/0xbrunoamuniz" target="_blank" rel="noopener noreferrer me" aria-label="Bruno Muniz on X"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M18.9 2H22l-6.8 7.8L23 22h-6.3l-4.9-6.4L6.2 22H3l7.3-8.4L1 2h6.4l4.4 5.9L18.9 2Zm-1.1 18h1.7L6.3 3.9H4.5L17.8 20Z"/></svg><span>X</span></a>
+    <a href="https://www.linkedin.com/in/brunoamuniz/" target="_blank" rel="noopener noreferrer me" aria-label="Bruno Muniz on LinkedIn"><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28ZM5.34 7.43a2.06 2.06 0 1 1 0-4.13 2.06 2.06 0 0 1 0 4.13ZM7.12 20.45H3.56V9h3.56v11.45ZM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0Z"/></svg><span>LinkedIn</span></a>
+    <span class="mono" id="footer-generated">&ndash;</span>
+  </span>
+</footer>
+</div>
+</div>
+
+<script src="compare.js"></script>
+</body>
+</html>

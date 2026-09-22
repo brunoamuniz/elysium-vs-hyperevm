@@ -31,9 +31,12 @@
     "hold:clear": "node scripts/clear-hold.mjs",
     "lint": "eslint .",
     "format": "prettier --write src scripts test",
-    "format:check": "prettier --check src scripts test"
+    "format:check": "prettier --check src scripts test",
+    "publish:snapshot": "node scripts/publish-snapshot.mjs",
+    "build:web": "node scripts/build-web.mjs"
   },
   "dependencies": {
+    "@vercel/blob": "2.8.0",
     "fs-ext": "^2.1.1",
     "solc": "0.8.37",
     "viem": "^2.56.8"

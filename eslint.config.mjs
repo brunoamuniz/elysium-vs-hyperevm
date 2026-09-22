@@ -10,7 +10,7 @@ export default [
     rules: { 'no-unused-vars': ['error', { ignoreRestSiblings: true }] },
   },
   {
-    files: ['public/**/*.js'],
+    files: ['public/**/*.js', 'web/**/*.js'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'script', globals: globals.browser },
   },
 ];

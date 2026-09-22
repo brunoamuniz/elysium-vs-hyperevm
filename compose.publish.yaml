@@ -1,0 +1,13 @@
+services:
+  publisher:
+    image: elysium-minute-loop:local
+    command: npm run publish:snapshot
+    env_file:
+      - ${HOME}/.config/elysium-vs-hyperevm-publisher/blob.env
+    environment:
+      ELYSIUM_STATE_DIR: /home/node/.local/state/elysium-minute-loop
+      ELYSIUM_HYPEREVM_STATE_DIR: /home/node/.local/state/elysium-minute-loop-hyperevm
+    volumes:
+      - ${HOME}/.local/state/elysium-minute-loop:/home/node/.local/state/elysium-minute-loop:ro
+      - ${HOME}/.local/state/elysium-minute-loop-hyperevm:/home/node/.local/state/elysium-minute-loop-hyperevm:ro
+    restart: unless-stopped
