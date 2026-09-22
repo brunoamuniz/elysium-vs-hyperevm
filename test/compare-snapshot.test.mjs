@@ -573,8 +573,14 @@ test('the product page carries no operator or account vocabulary and credits the
   assert.match(html, /not affiliated with Kinetiq or Hyperliquid/);
   const top = html.indexOf('<h1 id="overview-title">Elysium vs HyperEVM</h1>');
   const note = html.indexOf('id="affiliation-note"');
-  assert.ok(top !== -1 && note > top && note < html.indexOf('id="verdict-text"'), 'the affiliation notice sits right under the page title, before the result');
-  assert.match(html.slice(note, note + 300), /Not affiliated with, endorsed by, or sponsored by Kinetiq or Hyperliquid/);
+  assert.ok(
+    top !== -1 && note > top && note < html.indexOf('id="verdict-text"'),
+    'the affiliation notice sits right under the page title, before the result',
+  );
+  assert.match(
+    html.slice(note, note + 300),
+    /Not affiliated with, endorsed by, or sponsored by Kinetiq or Hyperliquid/,
+  );
   for (const id of ['overview', 'latency', 'gas', 'transactions', 'methodology', 'about']) {
     assert.match(html, new RegExp(`<a href="#${id}"`), `menu links ${id}`);
     assert.match(html, new RegExp(`<section id="${id}"`), `section ${id} exists`);
