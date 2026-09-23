@@ -27,7 +27,7 @@ function bigintOrNull(value) {
 function blockTimestampMs(timing) {
   const seconds = bigintOrNull(timing?.blockTimestamp);
   if (seconds === null || seconds > 100_000_000_000n) return null;
-  return Number(seconds) * 1000;
+  return Number(seconds) * 1000 + 500;
 }
 
 export function clockOffsetMs(timing) {
@@ -58,7 +58,7 @@ export function phaseLatency(action, phase) {
   const [start, end] = pair;
   if (start === null || end === null) return null;
   const delta = end - start;
-  if (phase === 'chain_inclusion' && delta < 0 && delta > -1000) return 0;
+  if (phase === 'chain_inclusion') return delta > -500 && delta <= 86_400_000 ? delta : null;
   return delta >= 0 && delta <= 86_400_000 ? delta : null;
 }
 
@@ -91,7 +91,7 @@ function round(value, digits = 2) {
 }
 
 export function summarize(samples) {
-  const clean = (Array.isArray(samples) ? samples : []).filter((value) => Number.isFinite(value) && value >= 0);
+  const clean = (Array.isArray(samples) ? samples : []).filter((value) => Number.isFinite(value));
   if (!clean.length)
     return { count: 0, minMs: null, maxMs: null, meanMs: null, stdevMs: null, cv: null, p50Ms: null, p95Ms: null };
   const mean = clean.reduce((sum, value) => sum + value, 0) / clean.length;

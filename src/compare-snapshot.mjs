@@ -18,6 +18,7 @@ export const SERIES_LIMIT = 600;
 export const HOURLY_LIMIT = 168;
 export const HISTOGRAM_BUCKET_MS = 250;
 export const HISTOGRAM_BUCKETS = 24;
+export const BLOCK_TIMESTAMP_MIDPOINT_MS = 500;
 
 export const CHAIN_FACTS = Object.freeze({
   'elysium-testnet': Object.freeze({
@@ -68,9 +69,8 @@ export function chainInclusionMs(timing) {
   if (submit === null || seconds === null || seconds.length > 12) return null;
   const offset = clockOffsetMs(timing);
   if (offset === null) return null;
-  const delta = Number(seconds) * 1000 - (submit + offset);
-  if (delta < 0 && delta > -1000) return 0;
-  return delta >= 0 && delta <= 86_400_000 ? delta : null;
+  const delta = Number(seconds) * 1000 + BLOCK_TIMESTAMP_MIDPOINT_MS - (submit + offset);
+  return delta > -BLOCK_TIMESTAMP_MIDPOINT_MS && delta <= 86_400_000 ? delta : null;
 }
 
 function between(timing, from, to) {
@@ -193,7 +193,7 @@ function histogram(values) {
   let overflow = 0;
   for (const value of values) {
     if (value === null) continue;
-    const index = Math.floor(value / HISTOGRAM_BUCKET_MS);
+    const index = Math.max(0, Math.floor(value / HISTOGRAM_BUCKET_MS));
     if (index >= HISTOGRAM_BUCKETS) overflow += 1;
     else buckets[index].count += 1;
   }

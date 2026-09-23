@@ -108,7 +108,7 @@ test('malformed, missing and negative intervals are dropped rather than coerced'
   assert.equal(phaseLatency({}, 'end_to_end'), null);
   assert.equal(phaseLatency(action(), 'not_a_phase'), null);
   assert.equal(phaseLatency(action({ blockTimestamp: 'abc' }), 'chain_inclusion'), null);
-  assert.equal(phaseLatency(action({ blockTimestamp: String(Math.floor(BASE / 1000) + 3) }), 'chain_inclusion'), 3000);
+  assert.equal(phaseLatency(action({ blockTimestamp: String(Math.floor(BASE / 1000) + 3) }), 'chain_inclusion'), 3500);
 });
 
 test('primary percentile samples exclude recovered, migrated and drift-flagged actions', () => {
@@ -138,7 +138,7 @@ test('chain inclusion, observer inclusion and confirmation phases are reported s
   assert.equal(phaseLatency(one, 'submit_to_inclusion'), 3000);
   assert.equal(phaseLatency(one, 'inclusion_to_2conf'), 4000);
   assert.equal(phaseLatency(one, 'end_to_end'), 7000);
-  assert.equal(phaseLatency(one, 'chain_inclusion'), 2000);
+  assert.equal(phaseLatency(one, 'chain_inclusion'), 2500);
 });
 
 test('sample windows are capped so an unbounded journal cannot grow the metrics', () => {
@@ -287,16 +287,16 @@ test('buildAggregates counts skips by type and separates recovered from primary 
   assert.equal(aggregates.phases.end_to_end.maxMs, 4000);
 });
 
-test('chain inclusion treats sub-second negative deltas from whole-second block timestamps as zero', async () => {
+test('chain inclusion places each whole-second block at the middle of its second', async () => {
   const { phaseLatency } = await import('../src/benchmark-metrics.mjs');
   const at = (iso, blockTimestamp) => ({ timing: { submitStartedAt: iso, blockTimestamp } });
   assert.equal(
     phaseLatency(at('2026-09-22T12:00:03.228Z', String(Date.parse('2026-09-22T12:00:03Z') / 1000)), 'chain_inclusion'),
-    0,
+    272,
   );
   assert.equal(
     phaseLatency(at('2026-09-22T12:00:03.228Z', String(Date.parse('2026-09-22T12:00:05Z') / 1000)), 'chain_inclusion'),
-    1772,
+    2272,
   );
   assert.equal(
     phaseLatency(at('2026-09-22T12:00:03.228Z', String(Date.parse('2026-09-22T12:00:01Z') / 1000)), 'chain_inclusion'),

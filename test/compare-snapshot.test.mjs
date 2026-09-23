@@ -355,14 +355,14 @@ test('no comparison is published below the sample floor, and a ready one carries
   );
 });
 
-test('chain-side inclusion uses whole-second block timestamps and rejects blocks before the submit', () => {
+test('chain-side inclusion places each block at the middle of its whole second and rejects blocks from earlier seconds', () => {
   assert.equal(
     chainInclusionMs({
       clockOffsetMs: 0,
       submitStartedAt: '2026-09-22T19:00:03.228Z',
       blockTimestamp: String(Date.parse('2026-09-22T19:00:03Z') / 1000),
     }),
-    0,
+    272,
   );
   assert.equal(
     chainInclusionMs({
@@ -370,7 +370,7 @@ test('chain-side inclusion uses whole-second block timestamps and rejects blocks
       submitStartedAt: '2026-09-22T19:00:03.228Z',
       blockTimestamp: String(Date.parse('2026-09-22T19:00:05Z') / 1000),
     }),
-    1772,
+    2272,
   );
   assert.equal(
     chainInclusionMs({
@@ -617,9 +617,9 @@ test('chain-side inclusion is corrected by the host clock offset measured at sen
     submitStartedAt: '2026-09-22T19:00:03.228Z',
     blockTimestamp: block,
   });
-  assert.equal(chainInclusionMs(timing(0)), 1772);
-  assert.equal(chainInclusionMs(timing(1200)), 572, 'a host 1.2 s behind no longer inflates the result');
-  assert.equal(chainInclusionMs(timing(-500)), 2272, 'a host running ahead is corrected the other way');
+  assert.equal(chainInclusionMs(timing(0)), 2272);
+  assert.equal(chainInclusionMs(timing(1200)), 1072, 'a host 1.2 s behind no longer inflates the result');
+  assert.equal(chainInclusionMs(timing(-500)), 2772, 'a host running ahead is corrected the other way');
   assert.equal(chainInclusionMs(timing(null)), null, 'without a fresh offset the sample is left out');
   assert.equal(chainInclusionMs(timing(120_000)), null, 'an implausible offset is rejected');
 });
@@ -637,4 +637,24 @@ test('the snapshot reports how large the clock corrections were', () => {
   assert.equal(snapshot.chains[0].metrics.clockCorrection.count, 6);
   assert.equal(snapshot.chains[0].metrics.clockCorrection.maxMs, 1200);
   assert.equal(snapshot.chains[0].metrics.clockCorrection.minMs, 40, 'magnitudes, not signed offsets');
+});
+
+test('the midpoint estimate recovers the true median that whole-second timestamps would hide', () => {
+  const trueDelayMs = 180;
+  const values = Array.from({ length: 1000 }, (_, i) => {
+    const submit = Date.parse('2026-09-23T12:00:00.000Z') + i * 6_037;
+    const blockSeconds = Math.floor((submit + trueDelayMs) / 1000);
+    return chainInclusionMs({
+      measurementVersion: 4,
+      clockOffsetMs: 0,
+      submitStartedAt: new Date(submit).toISOString(),
+      blockTimestamp: String(blockSeconds),
+    });
+  });
+  const sorted = values.filter((value) => value !== null).sort((a, b) => a - b);
+  const median = sorted[Math.ceil(sorted.length / 2) - 1];
+  const mean = sorted.reduce((sum, value) => sum + value, 0) / sorted.length;
+  assert.equal(sorted.length, 1000, 'no sample is dropped for landing in the same second');
+  assert.ok(Math.abs(median - trueDelayMs) <= 30, `median ${median} is close to the true 180 ms`);
+  assert.ok(Math.abs(mean - trueDelayMs) <= 30, `mean ${mean} is close to the true 180 ms`);
 });

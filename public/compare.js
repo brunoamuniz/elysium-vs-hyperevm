@@ -29,6 +29,7 @@
     return n >= 10000 ? `${(n / 1000).toFixed(1)} s` : `${Math.round(n).toLocaleString('en-US')} ms`;
   }
 
+  function inclusion(value) { const n = finite(value); return n !== null && n < 0 ? '< 0.5 s' : ms(value); }
   function signedMs(value) { const n = finite(value); return n === null ? DASH : `${n > 0 ? '+' : n < 0 ? '−' : ''}${ms(Math.abs(n))}`; }
   function pct(value) { const n = finite(value); return n === null ? DASH : `${(n * 100).toFixed(2)}%`; }
   function shortHash(value) { return typeof value === 'string' && value.length > 18 ? `${value.slice(0, 10)}…${value.slice(-6)}` : value || DASH; }
@@ -154,15 +155,15 @@
     const ap = a.metrics?.chainInclusion?.p50Ms;
     const bp = b.metrics?.chainInclusion?.p50Ms;
     if (!cmp.ready) {
-      const early = finite(ap) !== null && finite(bp) !== null ? ` Early p50 so far: ${a.name} ${ms(ap)}, ${b.name} ${ms(bp)}.` : '';
+      const early = finite(ap) !== null && finite(bp) !== null ? ` Early p50 so far: ${a.name} ${inclusion(ap)}, ${b.name} ${inclusion(bp)}.` : '';
       return [`Collecting data: ${an} of ${need} samples on ${a.name}, ${bn} of ${need} on ${b.name}.${early}`, 'Not yet a result.'];
     }
     const [lo, hi] = Array.isArray(cmp.ci95Ms) ? cmp.ci95Ms : [null, null];
     const diff = finite(cmp.diffP50Ms);
     let head;
-    if (finite(hi) !== null && hi < 0) head = `${a.name} includes transactions faster: p50 ${ms(ap)} vs ${ms(bp)} on ${b.name}, ${ms(Math.abs(diff))} sooner (95% CI ${ms(Math.abs(hi))} to ${ms(Math.abs(lo))}).`;
-    else if (finite(lo) !== null && lo > 0) head = `${b.name} includes transactions faster: p50 ${ms(bp)} vs ${ms(ap)} on ${a.name}, ${ms(diff)} sooner (95% CI ${ms(lo)} to ${ms(hi)}).`;
-    else head = `No clear difference in chain-side inclusion: p50 ${ms(ap)} on ${a.name} vs ${ms(bp)} on ${b.name} (95% CI of the difference ${signedMs(lo)} to ${signedMs(hi)}).`;
+    if (finite(hi) !== null && hi < 0) head = `${a.name} includes transactions faster: p50 ${inclusion(ap)} vs ${inclusion(bp)} on ${b.name}, ${ms(Math.abs(diff))} sooner (95% CI ${ms(Math.abs(hi))} to ${ms(Math.abs(lo))}).`;
+    else if (finite(lo) !== null && lo > 0) head = `${b.name} includes transactions faster: p50 ${inclusion(bp)} vs ${inclusion(ap)} on ${a.name}, ${ms(diff)} sooner (95% CI ${ms(lo)} to ${ms(hi)}).`;
+    else head = `No clear difference in chain-side inclusion: p50 ${inclusion(ap)} on ${a.name} vs ${inclusion(bp)} on ${b.name} (95% CI of the difference ${signedMs(lo)} to ${signedMs(hi)}).`;
     return [head, cmp.announceable ? null : `Provisional until the shared window reaches ${finite(win.announceAfterHours) ?? 24} hours.`];
   }
 
@@ -218,11 +219,11 @@
       const state = document.createElement('span'); state.className = 'status-tag'; state.dataset.tone = chain.status === 'running' ? 'ok' : chain.status === 'paused' ? 'stop' : 'warn'; state.textContent = chain.status || 'unknown'; h3.appendChild(state);
       card.appendChild(h3);
       const stack = document.createElement('p'); stack.className = 'stack'; stack.textContent = chain.settlesTo ? `${chain.stack}, settles to ${chain.settlesTo}` : chain.stack; card.appendChild(stack);
-      const big = document.createElement('p'); big.className = 'big-number'; big.textContent = ms(chain.metrics?.chainInclusion?.p50Ms);
-      const unit = document.createElement('small'); unit.textContent = 'p50 chain-side inclusion'; big.appendChild(unit); card.appendChild(big);
+      const big = document.createElement('p'); big.className = 'big-number'; big.textContent = inclusion(chain.metrics?.chainInclusion?.p50Ms);
+      const unit = document.createElement('small'); unit.textContent = ' p50 chain-side inclusion'; big.appendChild(unit); card.appendChild(big);
       const kv = document.createElement('dl'); kv.className = 'card-kv';
       const add = (label, value) => { const dt = document.createElement('dt'); dt.textContent = label; const dd = document.createElement('dd'); if (value instanceof Node) dd.appendChild(value); else dd.textContent = value; kv.append(dt, dd); };
-      add('p95', ms(chain.metrics?.chainInclusion?.p95Ms));
+      add('p95', inclusion(chain.metrics?.chainInclusion?.p95Ms));
       add('RPC accept p50', ms(chain.metrics?.rpcAccept?.p50Ms));
       add('Samples', `${chain.counts?.primary ?? 0} primary, ${chain.counts?.excluded ?? 0} excluded`);
       add('Fee per tx', hype(chain.gas?.feeWei?.mean));
@@ -260,8 +261,8 @@
   function renderMetrics(data) {
     const m = (key, field) => (chain) => chain.metrics?.[key]?.[field];
     renderCompareTable('metrics-head', 'metrics-body', [
-      { label: 'Chain-side inclusion p50', get: m('chainInclusion', 'p50Ms'), format: ms, diff: true },
-      { label: 'Chain-side inclusion p95', get: m('chainInclusion', 'p95Ms'), format: ms, diff: true },
+      { label: 'Chain-side inclusion p50', get: m('chainInclusion', 'p50Ms'), format: inclusion, diff: true },
+      { label: 'Chain-side inclusion p95', get: m('chainInclusion', 'p95Ms'), format: inclusion, diff: true },
       { label: 'RPC accept p50', get: m('rpcAccept', 'p50Ms'), format: ms, diff: true },
       { label: 'RPC accept p95', get: m('rpcAccept', 'p95Ms'), format: ms, diff: true },
       { label: 'Observed inclusion p50', tag: 'secondary, client-side', secondary: true, get: m('observedInclusion', 'p50Ms'), format: ms, diff: true },
@@ -293,10 +294,10 @@
   function hourlyChart(data) {
     const list = chains(data);
     const hours = [...new Set(list.flatMap((chain) => (chain.hourly || []).map((entry) => entry.hour)))].sort();
-    const rows = hours.map((hour) => [hour.replace('T', ' '), ...list.map((chain) => ms((chain.hourly || []).find((entry) => entry.hour === hour)?.chainInclusionP50Ms))]);
+    const rows = hours.map((hour) => [hour.replace('T', ' '), ...list.map((chain) => inclusion((chain.hourly || []).find((entry) => entry.hour === hour)?.chainInclusionP50Ms))]);
     const table = { caption: 'Chain-side inclusion p50 per UTC hour', headers: ['Hour', ...list.map((chain) => chain.name)], rows };
-    const values = list.flatMap((chain) => (chain.hourly || []).map((entry) => finite(entry.chainInclusionP50Ms)).filter((value) => value !== null));
-    const summary = hours.length ? `${hours.length} hour${hours.length === 1 ? '' : 's'}. ${list.map((chain) => { const last = (chain.hourly || []).at(-1); return `${chain.name} latest hour p50 ${ms(last?.chainInclusionP50Ms)} over ${last?.count ?? 0} samples`; }).join('; ')}.` : 'No hourly data yet.';
+    const values = list.flatMap((chain) => (chain.hourly || []).map((entry) => finite(entry.chainInclusionP50Ms)).filter((value) => value !== null).map((value) => Math.max(0, value)));
+    const summary = hours.length ? `${hours.length} hour${hours.length === 1 ? '' : 's'}. ${list.map((chain) => { const last = (chain.hourly || []).at(-1); return `${chain.name} latest hour p50 ${inclusion(last?.chainInclusionP50Ms)} over ${last?.count ?? 0} samples`; }).join('; ')}.` : 'No hourly data yet.';
     if (!values.length) return { summary, table };
     const yMax = niceMax(Math.max(...values));
     const x = (index) => (hours.length === 1 ? (M.left + W - M.right) / 2 : scale(0, hours.length - 1, M.left + 6, W - M.right - 6)(index));
@@ -305,7 +306,7 @@
     yAxis(svg, y, yMax, ms);
     xLabels(svg, [[M.left, hours[0].slice(11, 16), 'start'], [W - M.right, hours.at(-1).slice(11, 16), 'end']]);
     list.forEach((chain, index) => {
-      const points = hours.map((hour, position) => { const value = finite((chain.hourly || []).find((entry) => entry.hour === hour)?.chainInclusionP50Ms); return value === null ? null : [x(position), y(value)]; });
+      const points = hours.map((hour, position) => { const value = finite((chain.hourly || []).find((entry) => entry.hour === hour)?.chainInclusionP50Ms); return value === null ? null : [x(position), y(Math.max(0, value))]; });
       let d = ''; let pen = false;
       for (const point of points) { if (!point) { pen = false; continue; } d += `${pen ? 'L' : 'M'}${point[0].toFixed(1)} ${point[1].toFixed(1)}`; pen = true; }
       node('path', { d, class: `series-${SERIES[index]}-line` }, svg);
@@ -344,7 +345,7 @@
     const list = chains(data);
     const points = list.map((chain) => (chain.series || []).map((point) => ({ at: Date.parse(point.at), value: finite(point.chainInclusionMs) })).filter((point) => Number.isFinite(point.at) && point.value !== null));
     const all = points.flat();
-    const rows = list.flatMap((chain, index) => points[index].slice(-60).map((point) => [chain.name, utc(new Date(point.at).toISOString()), ms(point.value)]));
+    const rows = list.flatMap((chain, index) => points[index].slice(-60).map((point) => [chain.name, utc(new Date(point.at).toISOString()), inclusion(point.value)]));
     const table = { caption: 'Latest per-transaction chain-side inclusion (up to 60 per chain)', headers: ['Chain', 'Submitted (UTC)', 'Inclusion'], rows };
     const summary = all.length ? `${list.map((chain, index) => `${points[index].length} ${chain.name} transactions`).join(' and ')} plotted by submission time.` : 'No transactions yet.';
     if (!all.length) return { summary, table };
@@ -356,7 +357,7 @@
     const svg = createSvg('Per-transaction chain-side inclusion', summary, H, WIDE);
     yAxis(svg, y, yMax, ms, WIDE);
     xLabels(svg, [[M.left, clock(t0), 'start'], [WIDE - M.right, clock(t1), 'end']]);
-    points.forEach((series, index) => { const group = node('g', {}, svg); for (const point of series) node('circle', { cx: x(point.at).toFixed(1), cy: y(point.value).toFixed(1), r: 2.5, class: `series-${SERIES[index]}-mark` }, group); });
+    points.forEach((series, index) => { const group = node('g', {}, svg); for (const point of series) node('circle', { cx: x(point.at).toFixed(1), cy: y(Math.max(0, point.value)).toFixed(1), r: 2.5, class: `series-${SERIES[index]}-mark` }, group); });
     return { summary, svg, table, legend: list.map((chain, index) => ({ kind: `series-${SERIES[index]}-mark`, label: chain.name })) };
   }
 
@@ -446,7 +447,7 @@
         const hashCell = tr.insertCell(); hashCell.className = 'mono'; hashCell.appendChild(link(shortHash(tx.hash), tx.explorerUrl));
         const block = tr.insertCell(); block.className = 'mono'; block.textContent = tx.blockNumber || DASH;
         const state = tr.insertCell(); const tag = document.createElement('span'); tag.className = 'status-tag'; tag.dataset.tone = ['finalized', 'included'].includes(tx.status) ? 'ok' : tx.status === 'reverted' ? 'stop' : 'warn'; tag.textContent = tx.status || 'unknown'; state.appendChild(tag);
-        const inc = tr.insertCell(); inc.className = 'mono num'; inc.textContent = ms(tx.chainInclusionMs);
+        const inc = tr.insertCell(); inc.className = 'mono num'; inc.textContent = inclusion(tx.chainInclusionMs);
         const obs = tr.insertCell(); obs.className = 'mono num'; obs.textContent = ms(tx.observedInclusionMs);
       }
       wrap.appendChild(table);
