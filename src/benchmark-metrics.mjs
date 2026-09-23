@@ -30,6 +30,19 @@ function blockTimestampMs(timing) {
   return Number(seconds) * 1000;
 }
 
+export function clockOffsetMs(timing) {
+  const value = timing?.clockOffsetMs;
+  return typeof value === 'number' && Number.isFinite(value) && Math.abs(value) <= 60_000 ? value : null;
+}
+
+function correctedSubmit(timing) {
+  const submit = epochMs(timing.submitStartedAt);
+  if (submit === null) return null;
+  const offset = clockOffsetMs(timing);
+  if (offset === null) return (timing.measurementVersion ?? 0) >= 4 ? null : submit;
+  return submit + offset;
+}
+
 export function phaseLatency(action, phase) {
   const timing = action?.timing;
   if (!timing || typeof timing !== 'object') return null;
@@ -38,7 +51,7 @@ export function phaseLatency(action, phase) {
     submit_to_inclusion: [epochMs(timing.submitStartedAt), epochMs(timing.includedObservedAt)],
     inclusion_to_2conf: [epochMs(timing.includedObservedAt), epochMs(timing.confirmedObservedAt)],
     end_to_end: [epochMs(timing.submitStartedAt), epochMs(timing.confirmedObservedAt)],
-    chain_inclusion: [epochMs(timing.submitStartedAt), blockTimestampMs(timing)],
+    chain_inclusion: [correctedSubmit(timing), blockTimestampMs(timing)],
   };
   const pair = pairs[phase];
   if (!pair) return null;

@@ -20,7 +20,7 @@ import {
 export const RPC_ERROR_KINDS = ['rate_limit', 'timeout', 'already_known', 'nonce_too_low', 'transient', 'unknown'];
 export const RETRYABLE_KINDS = ['rate_limit', 'timeout', 'transient'];
 export const MISSING_RECEIPT_POLLS_BEFORE_RECONCILE = 2;
-export const MEASUREMENT_VERSION = 3;
+export const MEASUREMENT_VERSION = 4;
 export const REBROADCAST_AFTER_MS = 30_000;
 export const WATCH_BACKFILL_BLOCKS = 3;
 export const WATCH_MAX_GAP_BLOCKS = 20;
@@ -184,6 +184,7 @@ export async function openBenchmarkOwner({
   artifact,
   chain,
   clock = systemClock(),
+  clockOffset = null,
   log = (entry) => console.log(JSON.stringify(entry)),
 }) {
   const pinned = CHAINS[config.chain];
@@ -573,6 +574,7 @@ export async function openBenchmarkOwner({
         submitStartedAt: start.iso,
         submitStartedWallMs: start.wallMs,
         submitStartedMonoMs: start.monoMs,
+        clockOffsetMs: clockOffset?.current()?.offsetMs ?? null,
         processId,
       };
       await persist();
@@ -767,6 +769,10 @@ export async function openBenchmarkOwner({
     broadcastPrepared,
     watch,
     async runSlot(slot) {
+      if (clockOffset?.due()) {
+        const refreshed = await clockOffset.refresh().catch(() => null);
+        emit('clock_offset', { offsetMs: refreshed?.offsetMs ?? null, servers: refreshed?.servers ?? 0 });
+      }
       await reconcile();
       const backlog = await broadcastPrepared();
       const prepared = await prepareBatch(slot);

@@ -2,6 +2,7 @@ import { assertBenchmarkLive, assertLive, loadBenchmarkConfig, loadConfig, redac
 import { loadWallet } from '../src/wallet.mjs';
 import { runBenchmarkLoop, runLoop } from '../src/loop.mjs';
 import { openBenchmarkOwner, systemClock } from '../src/benchmark.mjs';
+import { clockOffsetTracker } from '../src/clock-offset.mjs';
 import { compileMinutePulse } from '../src/contract.mjs';
 import { clients, verifyNetwork } from '../src/elysium.mjs';
 
@@ -23,6 +24,7 @@ try {
       artifact: compileMinutePulse(),
       chain: publicClient,
       clock: systemClock(),
+      clockOffset: clockOffsetTracker(),
     });
     try {
       await runBenchmarkLoop({ owner, config, benchmark });

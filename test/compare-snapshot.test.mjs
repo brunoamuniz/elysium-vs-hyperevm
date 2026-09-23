@@ -23,7 +23,7 @@ const BASE = Date.parse('2026-09-22T19:00:00.000Z');
 
 function action(
   index,
-  { chainOffsetMs = 150, start = BASE, version = 3, quality = 'primary', status = 'finalized', nitro = true } = {},
+  { chainOffsetMs = 150, start = BASE, version = 4, quality = 'primary', status = 'finalized', nitro = true } = {},
 ) {
   const submit = start + index * 6000;
   const blockSeconds = Math.floor((submit + chainOffsetMs) / 1000);
@@ -67,6 +67,7 @@ function action(
           blockBaseFeeWei: '100000000',
         },
     timing: {
+      clockOffsetMs: 0,
       measurementVersion: version,
       quality,
       recovered: quality !== 'primary',
@@ -203,7 +204,14 @@ test('every key path in the snapshot belongs to the documented schema', () => {
     'chains.*.successRate',
     'chains.*.watchedShare',
     'chains.*.metrics',
-    ...['chainInclusion', 'rpcAccept', 'observedInclusion', 'watchRtt', 'inclusionToTwoConf'].flatMap((metric) => [
+    ...[
+      'chainInclusion',
+      'rpcAccept',
+      'observedInclusion',
+      'watchRtt',
+      'inclusionToTwoConf',
+      'clockCorrection',
+    ].flatMap((metric) => [
       `chains.*.metrics.${metric}`,
       ...['count', 'p50Ms', 'p95Ms', 'minMs', 'maxMs', 'meanMs'].map((key) => `chains.*.metrics.${metric}.${key}`),
     ]),
@@ -281,7 +289,7 @@ test('every key path in the snapshot belongs to the documented schema', () => {
 
 test('only v2 primary samples from the shared window count, and explorer links point at each chain', () => {
   const elysium = [
-    ...Array.from({ length: 10 }, (_, i) => action(i, { version: 2 })),
+    ...Array.from({ length: 10 }, (_, i) => action(i, { version: 3 })),
     ...Array.from({ length: 10 }, (_, i) => action(i + 100)),
     action(500, { quality: 'recovered' }),
   ];
@@ -350,6 +358,7 @@ test('no comparison is published below the sample floor, and a ready one carries
 test('chain-side inclusion uses whole-second block timestamps and rejects blocks before the submit', () => {
   assert.equal(
     chainInclusionMs({
+      clockOffsetMs: 0,
       submitStartedAt: '2026-09-22T19:00:03.228Z',
       blockTimestamp: String(Date.parse('2026-09-22T19:00:03Z') / 1000),
     }),
@@ -357,6 +366,7 @@ test('chain-side inclusion uses whole-second block timestamps and rejects blocks
   );
   assert.equal(
     chainInclusionMs({
+      clockOffsetMs: 0,
       submitStartedAt: '2026-09-22T19:00:03.228Z',
       blockTimestamp: String(Date.parse('2026-09-22T19:00:05Z') / 1000),
     }),
@@ -364,6 +374,7 @@ test('chain-side inclusion uses whole-second block timestamps and rejects blocks
   );
   assert.equal(
     chainInclusionMs({
+      clockOffsetMs: 0,
       submitStartedAt: '2026-09-22T19:00:03.228Z',
       blockTimestamp: String(Date.parse('2026-09-22T19:00:01Z') / 1000),
     }),
@@ -596,4 +607,34 @@ test('the product page carries no operator or account vocabulary and credits the
     assert.match(html, new RegExp(`<a href="#${id}"`), `menu links ${id}`);
     assert.match(html, new RegExp(`<section id="${id}"`), `section ${id} exists`);
   }
+});
+
+test('chain-side inclusion is corrected by the host clock offset measured at send time', () => {
+  const block = String(Date.parse('2026-09-22T19:00:05Z') / 1000);
+  const timing = (clockOffsetMs) => ({
+    measurementVersion: 4,
+    clockOffsetMs,
+    submitStartedAt: '2026-09-22T19:00:03.228Z',
+    blockTimestamp: block,
+  });
+  assert.equal(chainInclusionMs(timing(0)), 1772);
+  assert.equal(chainInclusionMs(timing(1200)), 572, 'a host 1.2 s behind no longer inflates the result');
+  assert.equal(chainInclusionMs(timing(-500)), 2272, 'a host running ahead is corrected the other way');
+  assert.equal(chainInclusionMs(timing(null)), null, 'without a fresh offset the sample is left out');
+  assert.equal(chainInclusionMs(timing(120_000)), null, 'an implausible offset is rejected');
+});
+
+test('the snapshot reports how large the clock corrections were', () => {
+  const list = Array.from({ length: 6 }, (_, i) => {
+    const entry = action(i);
+    entry.timing.clockOffsetMs = i % 2 ? 1200 : -40;
+    return entry;
+  });
+  const snapshot = buildCompareSnapshot({
+    sources: [source('elysium-testnet', list), source('hyperevm-testnet', list)],
+    now: NOW,
+  });
+  assert.equal(snapshot.chains[0].metrics.clockCorrection.count, 6);
+  assert.equal(snapshot.chains[0].metrics.clockCorrection.maxMs, 1200);
+  assert.equal(snapshot.chains[0].metrics.clockCorrection.minMs, 40, 'magnitudes, not signed offsets');
 });

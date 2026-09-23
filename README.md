@@ -11,6 +11,7 @@ The same minimal contract is deployed on both chains. One host sends the same lo
 | Metric | Meaning |
 | --- | --- |
 | Chain-side inclusion (headline) | Timestamp of the block that included the transaction minus the moment the client started submitting. Whole-second block timestamps make this accurate to about 1 s. |
+| Clock correction | Chain-side inclusion compares chain time with the host clock, so the client measures its own clock offset against three public NTP servers every 5 minutes (median, re-measured after any clock jump) and corrects each transaction with it. Samples without a fresh offset are left out. |
 | RPC accept | Round trip of `eth_sendRawTransaction` to each chain's public RPC. |
 | Observed inclusion (secondary) | When the client saw the including block, polling every 500 ms. Includes RPC round trip and polling delay. |
 | Fee per transaction | `gasUsed × effectiveGasPrice` from each receipt, in HYPE on both chains. |

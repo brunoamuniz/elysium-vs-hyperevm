@@ -1,10 +1,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { CHAINS } from './config.mjs';
+import { clockOffsetMs } from './benchmark-metrics.mjs';
 import { LEGACY_CHAIN_ID, readArchive, validateReadableState } from './state.mjs';
 
 export const SCHEMA_VERSION = 1;
-export const MEASUREMENT_VERSION = 3;
+export const MEASUREMENT_VERSION = 4;
 export const MIN_COMPARISON_SAMPLES = 200;
 export const MIN_ANNOUNCE_HOURS = 24;
 export const BOOTSTRAP_RESAMPLES = 10_000;
@@ -65,7 +66,9 @@ export function chainInclusionMs(timing) {
   const submit = epoch(timing?.submitStartedAt);
   const seconds = wholeNumber(timing?.blockTimestamp);
   if (submit === null || seconds === null || seconds.length > 12) return null;
-  const delta = Number(seconds) * 1000 - submit;
+  const offset = clockOffsetMs(timing);
+  if (offset === null) return null;
+  const delta = Number(seconds) * 1000 - (submit + offset);
   if (delta < 0 && delta > -1000) return 0;
   return delta >= 0 && delta <= 86_400_000 ? delta : null;
 }
@@ -388,6 +391,12 @@ function chainSection({ chain, state, halted, archived, nowMs, windowStartMs }) 
         watchRtt: summary(primary.map((action) => finiteMs(action.timing?.includedObservedRttMs))),
         inclusionToTwoConf: summary(
           primary.map((action) => between(action.timing, 'includedObservedAt', 'confirmedObservedAt')),
+        ),
+        clockCorrection: summary(
+          primary.map((action) => {
+            const offset = clockOffsetMs(action.timing);
+            return offset === null ? null : Math.abs(offset);
+          }),
         ),
       },
       watchedShare: primary.length

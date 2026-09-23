@@ -267,6 +267,7 @@
       { label: 'Observed inclusion p50', tag: 'secondary, client-side', secondary: true, get: m('observedInclusion', 'p50Ms'), format: ms, diff: true },
       { label: 'Observed inclusion p95', tag: 'secondary, client-side', secondary: true, get: m('observedInclusion', 'p95Ms'), format: ms, diff: true },
       { label: 'Watcher RPC round trip p50', tag: 'secondary', secondary: true, get: m('watchRtt', 'p50Ms'), format: ms, diff: true },
+      { label: 'Clock correction applied, median', tag: 'secondary', secondary: true, get: m('clockCorrection', 'p50Ms'), format: ms, diff: false },
       { label: 'Inclusion to 2-conf p50', tag: 'secondary, not meaningful', secondary: true, get: m('inclusionToTwoConf', 'p50Ms'), format: ms, diff: false },
       { label: 'Success rate', get: (chain) => chain.successRate, format: pct, diff: false },
       { label: 'Primary samples', get: (chain) => chain.counts?.primary, format: (value) => (finite(value) === null ? DASH : String(value)), diff: false },

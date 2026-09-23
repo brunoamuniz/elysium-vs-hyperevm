@@ -132,7 +132,14 @@ function fakeChain(overrides = {}) {
   return chain;
 }
 
-async function harness({ env = {}, chain = fakeChain(), clock = fakeClock(), state = null, chainArgv = [] } = {}) {
+async function harness({
+  env = {},
+  chain = fakeChain(),
+  clock = fakeClock(),
+  state = null,
+  chainArgv = [],
+  clockOffset = null,
+} = {}) {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'elysium-bench-'));
   await fs.chmod(dir, 0o700);
   const config = {
@@ -158,6 +165,7 @@ async function harness({ env = {}, chain = fakeChain(), clock = fakeClock(), sta
     artifact: ARTIFACT,
     chain,
     clock,
+    clockOffset,
     log: (entry) => logs.push(entry),
   });
   return {
@@ -1203,7 +1211,7 @@ test('the block watcher stamps inclusion when the block is seen, not when the tr
   }
   assert.equal(settleBlockCalls, 0, 'a watched block timestamp is reused instead of re-fetched per action');
   assert.ok(
-    actions.every((action) => action.timing.measurementVersion === 3),
+    actions.every((action) => action.timing.measurementVersion === 4),
     'samples from the fixed measurement path are tagged',
   );
   await h.cleanup();
@@ -1385,5 +1393,43 @@ test('on HyperEVM a stuck action is rebroadcast at most every 30 s and still rai
     (error) => error.code === 'HOLD',
   );
   assert.equal(h.owner.state.hold.type, 'stuck_nonce');
+  await h.cleanup();
+});
+
+test('each send carries the clock offset measured at the start of its slot', async () => {
+  let refreshes = 0;
+  let due = true;
+  const clockOffset = {
+    due: () => due,
+    refresh: async () => {
+      refreshes += 1;
+      due = false;
+      return { offsetMs: 1180, servers: 3 };
+    },
+    current: () => ({ offsetMs: 1180 }),
+  };
+  const h = await harness({ clockOffset });
+  await h.owner.runSlot('2026-09-22T12:00Z');
+  assert.equal(refreshes, 1);
+  assert.ok(h.owner.state.actions.every((action) => action.timing.clockOffsetMs === 1180));
+  assert.ok(h.logs.some((entry) => entry.type === 'clock_offset' && entry.offsetMs === 1180));
+  await h.owner.runSlot('2026-09-22T12:01Z');
+  assert.equal(refreshes, 1, 'no refresh until the offset is due again');
+  await h.cleanup();
+});
+
+test('a send without a usable clock offset records null instead of guessing', async () => {
+  const h = await harness({
+    clockOffset: {
+      due: () => true,
+      refresh: async () => {
+        throw new Error('udp blocked');
+      },
+      current: () => null,
+    },
+  });
+  await h.owner.runSlot('2026-09-22T12:00Z');
+  assert.ok(h.owner.state.actions.every((action) => action.timing.clockOffsetMs === null));
+  assert.ok(h.logs.some((entry) => entry.type === 'clock_offset' && entry.offsetMs === null));
   await h.cleanup();
 });
