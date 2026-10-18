@@ -481,8 +481,8 @@
     const controller = new AbortController();
     const abort = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      const separator = ENDPOINT.includes('?') ? '&' : '?';
-      const response = await fetch(`${ENDPOINT}${separator}v=${Date.now()}`, { method: 'GET', cache: 'no-store', credentials: 'omit', signal: controller.signal });
+      // No cache-busting query: the CDN must serve repeat polls from cache; no-store keeps the browser fresh.
+      const response = await fetch(ENDPOINT, { method: 'GET', cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (stopped) return;
       if (!response.ok) { renderFeed('down'); return; }
       const data = await response.json();

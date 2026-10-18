@@ -95,14 +95,14 @@ The operator view at `/operator` shows the benchmark account, balance and holds.
 
 ## Public site (Vercel)
 
-The public page is a static copy of the comparison page in `web/`, served by Vercel. It reads one JSON file, `snapshot.json`, from a public Vercel Blob store. Nothing on Vercel can reach the benchmark host, and no key or secret is deployed there.
+The public page is a static copy of the comparison page in `web/`, served by Vercel. It reads one JSON file, `/snapshot.json`, which a small function (`web/api/snapshot.mjs`, copied from `src/snapshot-function.mjs`) serves from an Upstash KV database with the CDN caching it for 60 seconds. Nothing on Vercel can reach the benchmark host. The only secret deployed there is the KV read-only token (`KV_REST_API_READ_ONLY_TOKEN`), which can read nothing but the sanitized snapshot.
 
-- `npm run build:web` regenerates `web/` from `public/`. It points the page at the Blob URL and writes `vercel.json` with a strict Content-Security-Policy that allows connections only to that Blob host.
-- The publisher container uploads a fresh sanitized snapshot every 60 seconds. Its only secret is the store's `BLOB_READ_WRITE_TOKEN`, read from an env file outside the repo. It mounts the journals read-only, never the wallet, and publishes no ports.
+- `npm run build:web` regenerates `web/` from `public/`. It points the page at `/snapshot.json`, copies the function, and writes `vercel.json` with the rewrite to the function and a strict Content-Security-Policy that allows connections only to the page's own origin.
+- The publisher container writes a fresh sanitized snapshot, gzipped, to KV every 5 minutes (under 9,000 of the free plan's 500,000 monthly commands), and skips the write when nothing but `generatedAt` changed. Its only secrets are `KV_REST_API_URL` and `KV_REST_API_TOKEN`, read from an env file outside the repo. Without them it falls back to the Vercel Blob store every 30 minutes: each Blob upload is an advanced operation, and the Hobby plan includes only 2,000 a month and suspends the store past that. It mounts the journals read-only, never the wallet, and publishes no ports.
 
 ```bash
 install -d -m 700 ~/.config/elysium-vs-hyperevm-publisher
-install -m 600 /dev/null ~/.config/elysium-vs-hyperevm-publisher/blob.env   # then add BLOB_READ_WRITE_TOKEN=...
+install -m 600 /dev/null ~/.config/elysium-vs-hyperevm-publisher/blob.env   # then add KV_REST_API_URL=... and KV_REST_API_TOKEN=...
 docker compose -f compose.yaml -f compose.benchmark.yaml -f compose.publish.yaml --profile benchmark up -d publisher
 ```
 

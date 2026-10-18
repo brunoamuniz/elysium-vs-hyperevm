@@ -1,13 +1,16 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-export const SNAPSHOT_URL = 'https://marlsetf2fnnbxpa.public.blob.vercel-storage.com/snapshot.json';
+// Same-origin path rewritten to the KV-backed function in web/api/snapshot.mjs.
+export const SNAPSHOT_URL = '/snapshot.json';
 export const WEB_ASSETS = ['compare.js', 'compare.css', 'dashboard.css'];
+const SNAPSHOT_FUNCTION = new URL('./snapshot-function.mjs', import.meta.url);
 
 export function snapshotOrigin(snapshotUrl) {
+  if (/^\/(?!\/)/.test(snapshotUrl)) return "'self'";
   const url = new URL(snapshotUrl);
   if (url.protocol !== 'https:' || !url.hostname.endsWith('.public.blob.vercel-storage.com'))
-    throw new Error('snapshot URL must be a public Vercel Blob https URL');
+    throw new Error('snapshot URL must be a same-origin path or a public Vercel Blob https URL');
   return url.origin;
 }
 
@@ -23,6 +26,7 @@ export function webHeaders(snapshotUrl) {
     "frame-ancestors 'none'",
   ].join('; ');
   return {
+    rewrites: [{ source: '/snapshot.json', destination: '/api/snapshot' }],
     headers: [
       {
         source: '/(.*)',
@@ -48,12 +52,15 @@ export async function renderWeb({ publicDir, snapshotUrl = SNAPSHOT_URL }) {
     'vercel.json': `${JSON.stringify(webHeaders(snapshotUrl), null, 2)}\n`,
   };
   for (const asset of WEB_ASSETS) files[asset] = await fs.readFile(path.join(publicDir, asset), 'utf8');
+  files['api/snapshot.mjs'] = await fs.readFile(SNAPSHOT_FUNCTION, 'utf8');
   return files;
 }
 
 export async function writeWeb({ publicDir, outDir, snapshotUrl = SNAPSHOT_URL }) {
   const files = await renderWeb({ publicDir, snapshotUrl });
-  await fs.mkdir(outDir, { recursive: true });
-  for (const [name, body] of Object.entries(files)) await fs.writeFile(path.join(outDir, name), body);
+  for (const [name, body] of Object.entries(files)) {
+    await fs.mkdir(path.dirname(path.join(outDir, name)), { recursive: true });
+    await fs.writeFile(path.join(outDir, name), body);
+  }
   return Object.keys(files);
 }

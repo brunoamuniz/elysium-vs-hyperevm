@@ -5,7 +5,7 @@ export default [
   { ignores: ['node_modules/**', '.venv/**', 'coverage/**'] },
   js.configs.recommended,
   {
-    files: ['src/**/*.mjs', 'scripts/**/*.mjs', 'test/**/*.mjs', 'eslint.config.mjs'],
+    files: ['src/**/*.mjs', 'scripts/**/*.mjs', 'test/**/*.mjs', 'web/api/**/*.mjs', 'eslint.config.mjs'],
     languageOptions: { ecmaVersion: 2024, sourceType: 'module', globals: globals.node },
     rules: { 'no-unused-vars': ['error', { ignoreRestSiblings: true }] },
   },
