@@ -2,7 +2,6 @@
   'use strict';
 
   const ENDPOINT = document.documentElement.dataset.snapshot || '/api/compare';
-  const POLL_MS = 60000;
   const TIMEOUT_MS = 15000;
   const DASH = '–';
   const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -13,9 +12,9 @@
   const SERIES = ['a', 'b'];
   const EXPLORER_HOSTS = ['elysium.kinetiq.xyz', 'app.hyperliquid-testnet.xyz'];
 
-  let timer = null;
   let stopped = false;
   let inflight = null;
+  let loaded = false;
   let uid = 0;
 
   const el = (id) => document.getElementById(id);
@@ -458,7 +457,7 @@
   function renderFeed(state) {
     const target = el('feed-status');
     target.dataset.feed = state;
-    target.textContent = state === 'live' ? 'live' : state === 'render_error' ? 'render failed' : 'unreachable';
+    target.textContent = state === 'archived' ? 'archived' : state === 'render_error' ? 'render failed' : 'unreachable';
   }
 
   function render(data) {
@@ -474,30 +473,28 @@
     renderChart('chart-price', priceChart(data));
     setText('footer-generated', data.generatedAt ? `data ${utc(data.generatedAt)}` : null);
     renderTransactions(data);
-    renderFeed('live');
+    renderFeed('archived');
   }
 
   async function refresh() {
     const controller = new AbortController();
     const abort = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
-      // No cache-busting query: the CDN must serve repeat polls from cache; no-store keeps the browser fresh.
+      // The benchmark ended on 2026-11-09; the snapshot is frozen, so the page loads it once and never polls.
       const response = await fetch(ENDPOINT, { method: 'GET', cache: 'no-store', credentials: 'omit', signal: controller.signal });
       if (stopped) return;
       if (!response.ok) { renderFeed('down'); return; }
       const data = await response.json();
-      try { render(data); } catch { renderFeed('render_error'); }
+      try { render(data); loaded = true; } catch { renderFeed('render_error'); }
     } catch { if (!stopped) renderFeed('down'); } finally { clearTimeout(abort); }
   }
 
-  function schedule() { clearTimeout(timer); if (!stopped) timer = setTimeout(tick, POLL_MS); }
-
+  // Archived: one load, no polling. A failed load is retried only when the tab becomes visible again.
   async function tick() {
+    if (loaded || stopped) return undefined;
     if (inflight) return inflight;
-    if (document.visibilityState === 'hidden') { schedule(); return undefined; }
     inflight = refresh();
     try { await inflight; } finally { inflight = null; }
-    schedule();
     return undefined;
   }
 
@@ -515,7 +512,7 @@
     for (const anchor of navLinks) { const section = document.getElementById(anchor.getAttribute('href').slice(1)); if (section) observer.observe(section); }
   }
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') tick(); });
-  window.addEventListener('pagehide', () => { stopped = true; clearTimeout(timer); });
+  window.addEventListener('pagehide', () => { stopped = true; });
   window.addEventListener('pageshow', (event) => { if (event.persisted) { stopped = false; tick(); } });
   tick();
 })();

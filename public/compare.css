@@ -5,6 +5,8 @@
 
 .disclaimer { margin: 0 0 var(--s4); padding: var(--s2) var(--s3); border: 1px solid var(--border-strong); border-left: 3px solid var(--accent); border-radius: var(--radius-sm); background: var(--surface-2); color: var(--ink-2); font-size: var(--fs-sm); }
 .disclaimer strong { color: var(--ink); }
+.archive-banner { margin: 0; padding: var(--s3) var(--s4); border: 1px solid var(--warn); border-left: 4px solid var(--warn); border-radius: var(--radius-sm); background: var(--warn-soft); color: var(--ink); font-size: var(--fs-lg); line-height: 1.5; }
+.archive-banner strong { color: var(--warn); }
 .verdict { margin: 0 0 var(--s4); font-size: var(--fs-lg); line-height: 1.5; max-width: 80ch; display: flex; flex-direction: column; gap: var(--s2); }
 .verdict p { margin: 0; }
 .verdict strong { font-weight: 700; }

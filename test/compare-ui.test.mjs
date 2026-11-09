@@ -83,6 +83,8 @@ const settle = async () => {
 
 async function render(snapshot) {
   const byId = new Map();
+  const fetches = [];
+  const timeouts = [];
   const document = {
     visibilityState: 'visible',
     documentElement: { dataset: { snapshot: '/api/compare' } },
@@ -98,11 +100,14 @@ async function render(snapshot) {
   const context = vm.createContext({
     document,
     window: { addEventListener() {} },
-    fetch: async () => ({ ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(snapshot)) }),
+    fetch: async (url) => (
+      fetches.push(url),
+      { ok: true, status: 200, json: async () => JSON.parse(JSON.stringify(snapshot)) }
+    ),
     AbortController,
     URL,
     Node: FakeElement,
-    setTimeout: () => 0,
+    setTimeout: (_, ms) => (timeouts.push(ms), 0),
     clearTimeout: () => {},
     Date,
     Math,
@@ -119,7 +124,7 @@ async function render(snapshot) {
   await settle();
   const el = (id) => document.getElementById(id);
   const allText = () => [...byId.values()].map((node) => node.textContent).join('\n');
-  return { el, allText };
+  return { el, allText, fetches, timeouts };
 }
 
 function action(index, { delayMs, start = BASE, offsetMs = 0, nitro = true } = {}) {
@@ -252,4 +257,22 @@ test('the fee row shows HYPE amounts with the expected magnitude', async () => {
   const feeRow = rows.find((row) => row.startsWith('Fee per transaction, mean'));
   assert.match(feeRow, /0\.000000389 HYPE/);
   assert.match(feeRow, /0\.000002884 HYPE/);
+});
+
+test('the archived page marks the feed archived, loads the frozen snapshot once and never polls', async () => {
+  const { el, fetches, timeouts } = await render(snapshotFor());
+  assert.equal(el('feed-status').textContent, 'archived');
+  assert.equal(el('feed-status').dataset.feed, 'archived');
+  assert.equal(fetches.length, 1, 'the frozen snapshot is fetched exactly once');
+  assert.ok(
+    timeouts.every((ms) => ms <= 15000),
+    'only the request timeout is scheduled, no refresh timer',
+  );
+});
+
+test('the published page carries the archive banner and no live wording', async () => {
+  const html = await fs.readFile(new URL('../public/compare.html', import.meta.url), 'utf8');
+  assert.match(html, /Archived<\/strong> &mdash; this benchmark ended on Nov 9, 2026\./);
+  assert.match(html, /frozen as of 2026-11-09 17:00 UTC and are no longer updated/);
+  assert.doesNotMatch(html, /\b[Ll]ive (testnet|data|benchmark)\b/);
 });

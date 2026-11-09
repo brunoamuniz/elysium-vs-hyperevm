@@ -200,6 +200,7 @@ a { color: inherit; }
 .chip.muted { color: var(--ink-3); }
 .chip[data-feed="live"] { border-color: var(--ok); color: var(--ok); }
 .chip[data-feed="stale"] { border-color: var(--warn); color: var(--warn); }
+.chip[data-feed="archived"] { border-color: var(--warn); color: var(--warn); }
 .chip[data-feed="down"] { border-color: var(--stop); color: var(--stop); }
 .chip[data-feed="render_error"] { border-color: var(--stop); color: var(--stop); }
 
